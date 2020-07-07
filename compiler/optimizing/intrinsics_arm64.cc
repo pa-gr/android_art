@@ -3467,6 +3467,7 @@ void IntrinsicCodeGeneratorARM64::VisitFP16Max(HInvoke* invoke) {
 }
 
 UNIMPLEMENTED_INTRINSIC(ARM64, ReferenceGetReferent)
+UNIMPLEMENTED_INTRINSIC(ARM64, IntegerDivideUnsigned)
 
 UNIMPLEMENTED_INTRINSIC(ARM64, StringStringIndexOf);
 UNIMPLEMENTED_INTRINSIC(ARM64, StringStringIndexOfAfter);
