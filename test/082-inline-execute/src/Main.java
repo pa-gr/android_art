@@ -1405,10 +1405,9 @@ public class Main {
 
     try {
       Integer.divideUnsigned(1, 0);
-    } catch (ArithmeticException e) {
-      return;
+      Assert.fail("Unreachable");
+    } catch (ArithmeticException expected) {
     }
-    Assert.fail("Unreachable");
   }
 
 
