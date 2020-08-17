@@ -2111,8 +2111,9 @@ void CodeGeneratorARMVIXL::MaybeIncrementHotness(bool is_frame_entry) {
   }
 
   if (GetGraph()->IsCompilingBaseline() && !Runtime::Current()->IsAotCompiler()) {
-    ScopedObjectAccess soa(Thread::Current());
-    ProfilingInfo* info = GetGraph()->GetArtMethod()->GetProfilingInfo(kRuntimePointerSize);
+    ScopedProfilingInfoUse spiu(
+        Runtime::Current()->GetJit(), GetGraph()->GetArtMethod(), Thread::Current());
+    ProfilingInfo* info = spiu.GetProfilingInfo();
     if (info != nullptr) {
       uint32_t address = reinterpret_cast32<uint32_t>(info);
       vixl::aarch32::Label done;
@@ -3444,8 +3445,9 @@ void CodeGeneratorARMVIXL::MaybeGenerateInlineCacheCheck(HInstruction* instructi
       GetGraph()->IsCompilingBaseline() &&
       !Runtime::Current()->IsAotCompiler()) {
     DCHECK(!instruction->GetEnvironment()->IsFromInlinedInvoke());
-    ScopedObjectAccess soa(Thread::Current());
-    ProfilingInfo* info = GetGraph()->GetArtMethod()->GetProfilingInfo(kRuntimePointerSize);
+    ScopedProfilingInfoUse spiu(
+        Runtime::Current()->GetJit(), GetGraph()->GetArtMethod(), Thread::Current());
+    ProfilingInfo* info = spiu.GetProfilingInfo();
     if (info != nullptr) {
       InlineCache* cache = info->GetInlineCache(instruction->GetDexPc());
       uint32_t address = reinterpret_cast32<uint32_t>(cache);
