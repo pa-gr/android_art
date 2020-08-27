@@ -3336,6 +3336,43 @@ void IntrinsicCodeGeneratorARM64::VisitFP16LessEquals(HInvoke* invoke) {
   GenerateFP16Compare(invoke, codegen_, masm, ls);
 }
 
+static void GenerateDivideUnsigned(HInvoke* invoke, CodeGeneratorARM64* codegen) {
+  LocationSummary* locations = invoke->GetLocations();
+  MacroAssembler* masm = codegen->GetVIXLAssembler();
+  DataType::Type type = invoke->GetType();
+  DCHECK(type == DataType::Type::kInt32 || type == DataType::Type::kInt64);
+
+  Register dividend = RegisterFrom(locations->InAt(0), type);
+  Register divisor = RegisterFrom(locations->InAt(1), type);
+  Register out = RegisterFrom(locations->Out(), type);
+
+  // Check if divisor is zero, bail to managed implementation to handle.
+  SlowPathCodeARM64* slow_path =
+      new (codegen->GetScopedAllocator()) IntrinsicSlowPathARM64(invoke);
+  codegen->AddSlowPath(slow_path);
+  __ Cbz(divisor, slow_path->GetEntryLabel());
+
+  __ Udiv(out, dividend, divisor);
+
+  __ Bind(slow_path->GetExitLabel());
+}
+
+void IntrinsicLocationsBuilderARM64::VisitIntegerDivideUnsigned(HInvoke* invoke) {
+  CreateIntIntToIntSlowPathCallLocations(allocator_, invoke);
+}
+
+void IntrinsicCodeGeneratorARM64::VisitIntegerDivideUnsigned(HInvoke* invoke) {
+  GenerateDivideUnsigned(invoke, codegen_);
+}
+
+void IntrinsicLocationsBuilderARM64::VisitLongDivideUnsigned(HInvoke* invoke) {
+  CreateIntIntToIntSlowPathCallLocations(allocator_, invoke);
+}
+
+void IntrinsicCodeGeneratorARM64::VisitLongDivideUnsigned(HInvoke* invoke) {
+  GenerateDivideUnsigned(invoke, codegen_);
+}
+
 void IntrinsicLocationsBuilderARM64::VisitFP16Compare(HInvoke* invoke) {
   if (!codegen_->GetInstructionSetFeatures().HasFP16()) {
     return;
@@ -3473,28 +3510,6 @@ void IntrinsicCodeGeneratorARM64::VisitFP16Max(HInvoke* invoke) {
   __ Csel(out, in0, in1, mi);
 
   __ Bind(&end);
-}
-
-void IntrinsicLocationsBuilderARM64::VisitIntegerDivideUnsigned(HInvoke* invoke) {
-  CreateIntIntToIntSlowPathCallLocations(allocator_, invoke);
-}
-
-void IntrinsicCodeGeneratorARM64::VisitIntegerDivideUnsigned(HInvoke* invoke) {
-  LocationSummary* locations = invoke->GetLocations();
-  MacroAssembler* masm = GetVIXLAssembler();
-  Register dividend = WRegisterFrom(locations->InAt(0));
-  Register divisor = WRegisterFrom(locations->InAt(1));
-  Register out = WRegisterFrom(locations->Out());
-
-  // Check if divisor is zero, bail to managed implementation to handle.
-  SlowPathCodeARM64* slow_path =
-      new (codegen_->GetScopedAllocator()) IntrinsicSlowPathARM64(invoke);
-  codegen_->AddSlowPath(slow_path);
-  __ Cbz(divisor, slow_path->GetEntryLabel());
-
-  __ Udiv(out, dividend, divisor);
-
-  __ Bind(slow_path->GetExitLabel());
 }
 
 UNIMPLEMENTED_INTRINSIC(ARM64, ReferenceGetReferent)
