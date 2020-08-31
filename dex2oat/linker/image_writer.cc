@@ -3466,8 +3466,10 @@ void ImageWriter::CopyAndFixupMethod(ArtMethod* orig,
         StubType stub_type = orig->IsCriticalNative() ? StubType::kJNIDlsymLookupCriticalTrampoline
                                                       : StubType::kJNIDlsymLookupTrampoline;
         copy->SetEntryPointFromJniPtrSize(GetOatAddress(stub_type), target_ptr_size_);
-      } else {
+      } else if (!orig->HasCodeItem()) {
         CHECK(copy->GetDataPtrSize(target_ptr_size_) == nullptr);
+      } else {
+        CHECK(copy->GetDataPtrSize(target_ptr_size_) != nullptr);
       }
     }
   }
