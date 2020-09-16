@@ -904,8 +904,10 @@ END \name
    bl art_quick_invoke_custom
    .else
       .if \is_interface
-      // Setup hidden argument
-      FETCH wip2, 1
+      // Setup hidden argument. As we don't have access to the interface method,
+      // just pass the method from the IMT. If the method is the conflict trampoline,
+      // this will make the stub go to runtime, otherwise the hidden argument is unused.
+      mov ip2, x0
       .endif
       ldr lr, [x0, #ART_METHOD_QUICK_CODE_OFFSET_64]
       blr lr
@@ -1153,8 +1155,10 @@ END \name
    bl art_quick_invoke_custom
    .else
       .if \is_interface
-      // Setup hidden argument
-      FETCH wip2, 1
+      // Setup hidden argument. As we don't have access to the interface method,
+      // just pass the method from the IMT. If the method is the conflict trampoline,
+      // this will make the stub go to runtime, otherwise the hidden argument is unused.
+      mov ip2, x0
       .endif
       ldr lr, [x0, #ART_METHOD_QUICK_CODE_OFFSET_64]
       blr lr
