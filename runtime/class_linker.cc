@@ -2206,7 +2206,7 @@ bool ClassLinker::AddImageSpace(
       if (method.HasCodeItem()) {
         const dex::CodeItem* code_item = method.GetDexFile()->GetCodeItem(
             reinterpret_cast32<uint32_t>(method.GetDataPtrSize(image_pointer_size_)));
-        method.SetDataPtrSize(code_item, image_pointer_size_);
+        method.SetCodeItem(code_item);
       }
       // Set image methods' entry point that point to the interpreter bridge to the
       // nterp entry point.
@@ -4040,8 +4040,7 @@ void ClassLinker::LoadMethod(const DexFile& dex_file,
     if (Runtime::Current()->IsAotCompiler()) {
       dst->SetDataPtrSize(reinterpret_cast32<void*>(method.GetCodeItemOffset()), image_pointer_size_);
     } else {
-      dst->SetDataPtrSize(dst->GetDexFile()->GetCodeItem(method.GetCodeItemOffset()),
-                          image_pointer_size_);
+      dst->SetCodeItem(dst->GetDexFile()->GetCodeItem(method.GetCodeItemOffset()));
     }
   } else {
     dst->SetDataPtrSize(nullptr, image_pointer_size_);
