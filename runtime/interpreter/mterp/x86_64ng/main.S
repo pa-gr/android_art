@@ -2086,6 +2086,9 @@ SYMBOL(artNterpAsmInstructionEnd):
 SYMBOL(artNterpAsmInstructionStart) = .L_op_nop
     .text
 
+%def default_helper_prefix():
+%  return "nterp_"
+
 %def opcode_start():
     ENTRY nterp_${opcode}
 %def opcode_end():
