@@ -465,7 +465,7 @@ END_FUNCTION \name
 // Uses rax as temporary.
 .macro LOOP_OVER_SHORTY_LOADING_GPRS gpr_reg64, gpr_reg32, inst, shorty, arg_index, finished
 1: // LOOP
-    movb (REG_VAR(shorty)), %al   // bl := *shorty
+    movb (REG_VAR(shorty)), %al   // al := *shorty
     addq MACRO_LITERAL(1), REG_VAR(shorty)  // shorty++
     cmpb MACRO_LITERAL(0), %al    // if (al == '\0') goto finished
     je  VAR(finished)
@@ -532,7 +532,7 @@ END_FUNCTION \name
 // Uses rax as temporary.
 .macro LOOP_RANGE_OVER_SHORTY_LOADING_XMMS xmm_reg, shorty, arg_index, stack_index, finished
 1: // LOOP
-    movb (REG_VAR(shorty)), %al             // bl := *shorty
+    movb (REG_VAR(shorty)), %al             // al := *shorty
     addq MACRO_LITERAL(1), REG_VAR(shorty)  // shorty++
     cmpb MACRO_LITERAL(0), %al              // if (al == '\0') goto finished
     je VAR(finished)
@@ -606,7 +606,7 @@ END_FUNCTION \name
 // Uses rax as temporary.
 .macro LOOP_RANGE_OVER_SHORTY_LOADING_GPRS gpr_reg64, gpr_reg32, shorty, arg_index, stack_index, finished
 1: // LOOP
-    movb (REG_VAR(shorty)), %al             // bl := *shorty
+    movb (REG_VAR(shorty)), %al             // al := *shorty
     addq MACRO_LITERAL(1), REG_VAR(shorty)  // shorty++
     cmpb MACRO_LITERAL(0), %al    // if (al == '\0') goto finished
     je  VAR(finished)
@@ -707,7 +707,7 @@ END_FUNCTION \name
 // Uses rax as temporary.
 .macro LOOP_OVER_SHORTY_STORING_GPRS gpr_reg64, gpr_reg32, shorty, arg_index, regs, refs, finished
 1: // LOOP
-    movb (REG_VAR(shorty)), %al             // bl := *shorty
+    movb (REG_VAR(shorty)), %al             // al := *shorty
     addq MACRO_LITERAL(1), REG_VAR(shorty)  // shorty++
     cmpb MACRO_LITERAL(0), %al    // if (al == '\0') goto finished
     je  VAR(finished)
@@ -747,7 +747,7 @@ END_FUNCTION \name
 // (The trade-off is different for passing arguments and receiving them.)
 .macro LOOP_OVER_FPs shorty, arg_index, regs, stack_ptr, finished
 1: // LOOP
-    movb (REG_VAR(shorty)), %al             // bl := *shorty
+    movb (REG_VAR(shorty)), %al             // al := *shorty
     addq MACRO_LITERAL(1), REG_VAR(shorty)  // shorty++
     cmpb MACRO_LITERAL(0), %al              // if (al == '\0') goto finished
     je VAR(finished)
@@ -779,7 +779,7 @@ END_FUNCTION \name
 // Uses rax as temporary.
 .macro LOOP_OVER_INTs shorty, arg_index, regs, refs, stack_ptr, finished
 1: // LOOP
-    movb (REG_VAR(shorty)), %al             // bl := *shorty
+    movb (REG_VAR(shorty)), %al             // al := *shorty
     addq MACRO_LITERAL(1), REG_VAR(shorty)  // shorty++
     cmpb MACRO_LITERAL(0), %al    // if (al == '\0') goto finished
     je  VAR(finished)
@@ -1042,10 +1042,11 @@ END_FUNCTION \name
    movq %rax, \dest
 .endm
 
+// Uses r9 as temporary.
 .macro DO_ENTRY_POINT_CHECK call_compiled_code
    // On entry, the method is %rdi, the instance is %rsi
-   leaq ExecuteNterpImpl(%rip), %rax
-   cmpq %rax, ART_METHOD_QUICK_CODE_OFFSET_64(%rdi)
+   leaq ExecuteNterpImpl(%rip), %r9
+   cmpq %r9, ART_METHOD_QUICK_CODE_OFFSET_64(%rdi)
    jne  VAR(call_compiled_code)
 
    movq ART_METHOD_DATA_OFFSET_64(%rdi), %rax
@@ -1085,6 +1086,10 @@ END_FUNCTION \name
    .endif
 
 .Lcall_compiled_code_\suffix:
+   .if \is_interface
+   // Save interface method, used for conflict resolution, in a callee-save register.
+   movq %rax, %xmm12
+   .endif
    GET_SHORTY rINSTq, \is_interface, \is_polymorphic, \is_custom
    // From this point:
    // - rISNTq contains shorty (in callee-save to switch over return value after call).
@@ -1131,10 +1136,7 @@ END_FUNCTION \name
    call SYMBOL(art_quick_invoke_custom)
    .else
       .if \is_interface
-      // Setup hidden argument. As we don't have access to the interface method,
-      // just pass the method from the IMT. If the method is the conflict trampoline,
-      // this will make the stub go to runtime, otherwise the hidden argument is unused.
-      movq %rdi, %rax
+      movq %xmm12, %rax
       .endif
       call *ART_METHOD_QUICK_CODE_OFFSET_64(%rdi) // Call the method.
    .endif
@@ -1181,6 +1183,10 @@ END_FUNCTION \name
    .endif
 
 .Lcall_compiled_code_range_\suffix:
+   .if \is_interface
+   // Save interface method, used for conflict resolution, in a callee-saved register.
+   movq %rax, %xmm12
+   .endif
    GET_SHORTY rINSTq, \is_interface, \is_polymorphic, \is_custom
    // From this point:
    // - rINSTq contains shorty (in callee-save to switch over return value after call).
@@ -1233,10 +1239,8 @@ END_FUNCTION \name
    call SYMBOL(art_quick_invoke_custom)
    .else
      .if \is_interface
-     // Setup hidden argument. As we don't have access to the interface method,
-     // just pass the method from the IMT. If the method is the conflict trampoline,
-     // this will make the stub go to runtime, otherwise the hidden argument is unused.
-     movq %rdi, %rax
+     // Set the hidden argument for conflict resolution.
+     movq %xmm12, %rax
      .endif
      call *ART_METHOD_QUICK_CODE_OFFSET_64(%rdi) // Call the method.
    .endif
@@ -1988,21 +1992,12 @@ NterpHandleHotnessOverflow:
     jmp *%rbx
 
 NterpHandleInvokeInterfaceOnObjectMethodRange:
-   // First argument is the 'this' pointer.
-   movzwl 4(rPC), %r11d // arguments
-   movl (rFP, %r11, 4), %esi
-   // Note: if esi is null, this will be handled by our SIGSEGV handler.
-   movl MIRROR_OBJECT_CLASS_OFFSET(%esi), %edx
+   shrl $$16, %eax
    movq MIRROR_CLASS_VTABLE_OFFSET_64(%edx, %eax, 8), %rdi
    jmp NterpCommonInvokeInstanceRange
 
 NterpHandleInvokeInterfaceOnObjectMethod:
-   // First argument is the 'this' pointer.
-   movzwl 4(rPC), %r11d // arguments
-   andq MACRO_LITERAL(0xf), %r11
-   movl (rFP, %r11, 4), %esi
-   // Note: if esi is null, this will be handled by our SIGSEGV handler.
-   movl MIRROR_OBJECT_CLASS_OFFSET(%esi), %edx
+   shrl $$16, %eax
    movq MIRROR_CLASS_VTABLE_OFFSET_64(%edx, %eax, 8), %rdi
    jmp NterpCommonInvokeInstance
 
