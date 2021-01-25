@@ -235,7 +235,8 @@ class ImageWriter final {
     kQuickIMTConflictTrampoline,
     kQuickResolutionTrampoline,
     kQuickToInterpreterBridge,
-    kLast = kQuickToInterpreterBridge,
+    kNterpTrampoline,
+    kLast = kNterpTrampoline,
   };
   friend std::ostream& operator<<(std::ostream& stream, StubType stub_type);
 
