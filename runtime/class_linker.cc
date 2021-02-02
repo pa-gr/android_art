@@ -1971,6 +1971,8 @@ bool ClassLinker::AddImageSpace(
       // nterp entry point.
       if (method.GetEntryPointFromQuickCompiledCode() == nterp_trampoline_) {
         if (can_use_nterp) {
+          DCHECK(!NeedsClinitCheckBeforeCall(&method) ||
+                 method.GetDeclaringClass()->IsVisiblyInitialized());
           method.SetEntryPointFromQuickCompiledCode(interpreter::GetNterpEntryPoint());
         } else {
           method.SetEntryPointFromQuickCompiledCode(GetQuickToInterpreterBridge());
