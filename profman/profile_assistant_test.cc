@@ -1163,11 +1163,11 @@ TEST_F(ProfileAssistantTest, TestProfileRoundTripWithAnnotations) {
     "HLTestInline;->inlineMegamorphic(LSuper;)I+LSubA;,LSubB;,LSubC;,LSubD;,LSubE;",
     "HLTestInline;->inlineMissingTypes(LSuper;)I+missing_types",
     "HLTestInline;->noInlineCache(LSuper;)I",
-    "HLTestInline;->inlineMultiMonomorphic(LSuper;LSecret;)I+]LSuper;LSubA;]LSecret;LSubB;",
-    "HLTestInline;->inlineMultiPolymorphic(LSuper;LSecret;)I+]LSuper;LSubA;,LSubB;,LSubC;]LSecret;LSubB;,LSubC;",
-    "HLTestInline;->inlineMultiMegamorphic(LSuper;LSecret;)I+]LSuper;LSubA;,LSubB;,LSubC;,LSubD;,LSubE;]LSecret;megamorphic_types",
-    "HLTestInline;->inlineMultiMissingTypes(LSuper;LSecret;)I+]LSuper;missing_types]LSecret;missing_types",
-    "HLTestInline;->inlineTriplePolymorphic(LSuper;LSecret;LSecret;)I+]LSuper;LSubA;,LSubB;,LSubC;]LSecret;LSubB;,LSubC;",
+    "HLTestInline;->inlineMultiMonomorphic(LSuper;LSecret;)I+[LSuper;LSubA;[LSecret;LSubB;",
+    "HLTestInline;->inlineMultiPolymorphic(LSuper;LSecret;)I+[LSuper;LSubA;,LSubB;,LSubC;[LSecret;LSubB;,LSubC;",
+    "HLTestInline;->inlineMultiMegamorphic(LSuper;LSecret;)I+[LSuper;LSubA;,LSubB;,LSubC;,LSubD;,LSubE;[LSecret;megamorphic_types",
+    "HLTestInline;->inlineMultiMissingTypes(LSuper;LSecret;)I+[LSuper;missing_types[LSecret;missing_types",
+    "HLTestInline;->inlineTriplePolymorphic(LSuper;LSecret;LSecret;)I+[LSuper;LSubA;,LSubB;,LSubC;[LSecret;LSubB;,LSubC;",
     "HLTestInline;->noInlineCacheMulti(LSuper;LSecret;)I",
   };
   std::ostringstream no_annotation_input_file_contents;
