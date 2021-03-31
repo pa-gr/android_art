@@ -20,7 +20,6 @@
 #include <vector>
 
 #include "base/macros.h"
-#include "base/value_object.h"
 #include "gc_root.h"
 #include "offsets.h"
 
@@ -30,7 +29,6 @@ class ArtMethod;
 class ProfilingInfo;
 
 namespace jit {
-class Jit;
 class JitCodeCache;
 }  // namespace jit
 
@@ -81,7 +79,9 @@ class ProfilingInfo {
     return method_;
   }
 
-  InlineCache* GetInlineCache(uint32_t dex_pc);
+  // Mutator lock only required for debugging output.
+  InlineCache* GetInlineCache(uint32_t dex_pc)
+      REQUIRES_SHARED(Locks::mutator_lock_);
 
   void SetSavedEntryPoint(const void* entry_point) {
     saved_entry_point_ = entry_point;
@@ -153,22 +153,6 @@ class ProfilingInfo {
   friend class jit::JitCodeCache;
 
   DISALLOW_COPY_AND_ASSIGN(ProfilingInfo);
-};
-
-class ScopedProfilingInfoUse : public ValueObject {
- public:
-  ScopedProfilingInfoUse(jit::Jit* jit, ArtMethod* method, Thread* self);
-  ~ScopedProfilingInfoUse();
-
-  ProfilingInfo* GetProfilingInfo() const { return profiling_info_; }
-
- private:
-  jit::Jit* const jit_;
-  ArtMethod* const method_;
-  Thread* const self_;
-  ProfilingInfo* const profiling_info_;
-
-  DISALLOW_COPY_AND_ASSIGN(ScopedProfilingInfoUse);
 };
 
 }  // namespace art
