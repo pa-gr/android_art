@@ -5127,7 +5127,7 @@ void CodeGeneratorX86::GenerateStaticOrDirectCall(
       if (invoke->GetMethodLoadKind() == MethodLoadKind::kBootImageLinkTimePcRelative) {
         DCHECK(GetCompilerOptions().IsBootImage() || GetCompilerOptions().IsBootImageExtension());
         Register base_reg = GetInvokeExtraParameter(invoke, temp.AsRegister<Register>());
-        __ call(Address(base_reg, CodeGeneratorX86::kPlaceholder32BitOffset));
+        __ call(Address(base_reg, CodeGeneratorX86::kDummy32BitOffset));
         RecordBootImageJniEntrypointPatch(invoke);
       } else {
         // (callee_method + offset_of_jni_entry_point)()
@@ -5358,7 +5358,7 @@ void CodeGeneratorX86::LoadIntrinsicDeclaringClass(Register reg, HInvokeStaticOr
     DCHECK(method_address != nullptr);
     Register method_address_reg =
         invoke->GetLocations()->InAt(invoke->GetSpecialInputIndex()).AsRegister<Register>();
-    __ leal(red, Address(method_address_reg, CodeGeneratorX86::kDummy32BitOffset));
+    __ leal(reg, Address(method_address_reg, CodeGeneratorX86::kDummy32BitOffset));
     MethodReference target_method = invoke->GetResolvedMethodReference();
     dex::TypeIndex type_idx = target_method.dex_file->GetMethodId(target_method.index).class_idx_;
     boot_image_type_patches_.emplace_back(method_address, target_method.dex_file, type_idx.index_);

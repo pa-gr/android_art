@@ -1084,7 +1084,7 @@ void CodeGeneratorX86_64::GenerateStaticOrDirectCall(
                                     GetCriticalNativeDirectCallFrameSize>(invoke);
       if (invoke->GetMethodLoadKind() == MethodLoadKind::kBootImageLinkTimePcRelative) {
         DCHECK(GetCompilerOptions().IsBootImage() || GetCompilerOptions().IsBootImageExtension());
-        __ call(Address::Absolute(kPlaceholder32BitOffset, /* no_rip= */ false));
+        __ call(Address::Absolute(kDummy32BitOffset, /* no_rip= */ false));
         RecordBootImageJniEntrypointPatch(invoke);
       } else {
         // (callee_method + offset_of_jni_entry_point)()

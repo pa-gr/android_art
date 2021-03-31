@@ -1937,7 +1937,7 @@ bool ClassLinker::AddImageSpace(
     }
   }
 
-  if (kCheckImageObjects) {
+  if (kSanityCheckObjects) {
     if (!app_image) {
       ImageSanityChecks::CheckObjects(heap, this);
     }
